@@ -5,11 +5,11 @@ const app = express();
 const PORT = 8000;
 
 
-app.use("/test", (req, res) => {  //this fn is known as the request handler.
-    res.send("Hey there!");
+app.get("/user", (req, res) => {
+    res.send("got all the users");
 })
-app.use("/best", (req, res) => {  //this fn is known as the request handler.
-    res.send("Hey there!");
+app.post("/user", (req, res) => {
+    res.send("saved user to db");
 })
 app.listen(PORT, () => {
     console.log(`Server running successfully on port: ${PORT}`);
