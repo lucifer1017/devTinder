@@ -1,26 +1,37 @@
 const express = require('express');
-
+const { connectToDb } = require('./config/database');
+const User = require('./models/user');
 const app = express();
 
 const PORT = 8000;
 
-app.get('/getUserData', (req, res) => {
+app.post('/signup', async (req, res) => {
+    const user = new User({
+        firstName: "Karan",
+        lastName: "Arora",
+        email: "karan@arora.com",
+        password: "karan#123"
+    });
 
-    throw new Error("not found");
-
-
-})
-
-app.get("/user", (req, res) => { //this fn is known as route handler
-    console.log("hello");
-    res.send("gotUserData");
-})
-
-app.use('/', (err, req, res, next) => {
-    if (err) {
-        res.status(500).send("Something went wrong");
+    try {
+        await user.save();
+        res.send("User added Successfully");
+    } catch (error) {
+        res.status(500).send("User not added.")
     }
+
 })
-app.listen(PORT, () => {
-    console.log(`Server running successfully on port:${PORT}`);
-})
+
+connectToDb()
+    .then(() => {
+        console.log("Connected to DB successfully");
+        app.listen(PORT, () => {
+            console.log(`Server running successfully on port:${PORT}`);
+        })
+    })
+    .catch((err) => {
+        console.error("Cannot establish connection");
+    })
+
+
+
