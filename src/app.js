@@ -8,11 +8,15 @@ app.post('/signup', async (req, res) => {
 
     const user = new User(req.body);
 
+
     try {
-        await user.save();
+        const result = await user.save();
+        if (!result) {
+            throw new Error("Cannot Save user")
+        }
         res.send("User added Successfully");
     } catch (error) {
-        res.status(500).send("User not added.")
+        res.status(400).send("User not added." + error.message)
     }
 
 })
@@ -54,12 +58,21 @@ app.delete('/user', async (req, res) => {
 
 })
 
-app.patch('/user', async (req, res) => {
+app.patch('/user/:id', async (req, res) => {
 
-    const { oldemail, newemail } = req?.body;
+    const id = req?.params?.id;
+    const data = req?.body;
+    const ALLOWED_UPDATES = ["gender", "age", "photoUrl", "lastName", "skills", "about"];
+    const isAllowed = Object.keys(data).every(k => ALLOWED_UPDATES.includes(k));
 
     try {
-        const user = await User.findOneAndUpdate({ email: oldemail }, { email: newemail });
+        if (!isAllowed) {
+            throw new Error("Cannot update the given field");
+        }
+        const user = await User.findByIdAndUpdate(id, data, {
+            runValidators: true,
+            returnDocument: "before"
+        })
 
         if (!user) {
             res.status(404).send("User Not found");
@@ -70,7 +83,7 @@ app.patch('/user', async (req, res) => {
         }
 
     } catch (error) {
-        res.status(400).send("Something went wrong");
+        res.status(400).send("UPDATE FAILED:" + error.message);
     }
 })
 
