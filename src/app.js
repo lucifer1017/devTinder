@@ -2,89 +2,78 @@ const express = require('express');
 const { connectToDb } = require('./config/database');
 const User = require('./models/user');
 const app = express();
+const bcrypt = require('bcrypt');
+const { validateUserSignup } = require('./utils/validation');
+const cookieParser = require('cookie-parser');
+const jwt = require('jsonwebtoken');
+const { userAuth } = require('./middlewares/auth');
 const PORT = 8000;
 app.use(express.json());
+app.use(cookieParser());
 app.post('/signup', async (req, res) => {
 
-    const user = new User(req.body);
-
-
+    const data = req?.body;
     try {
+        validateUserSignup(data);
+        const passwordHash = await bcrypt.hash(data.password, 10);
+        data.password = passwordHash;
+
+        const user = new User(data);
+
         const result = await user.save();
         if (!result) {
             throw new Error("Cannot Save user")
         }
         res.send("User added Successfully");
     } catch (error) {
-        res.status(400).send("User not added." + error.message)
-    }
-
-})
-app.get('/user', async (req, res) => {
-    const userEmail = req?.body?.email;
-
-    try {
-        const user = await User.find({ email: userEmail });
-        if (user.length === 0) {
-            res.status(404).send("User Not found");
-
-        }
-        else {
-            res.send(user);
-        }
-
-    } catch (error) {
-        res.status(400).send("Something went wrong");
+        res.status(400).send("Error: " + error.message)
     }
 
 })
 
-app.delete('/user', async (req, res) => {
-    const id = req?.body?.id;
-
+app.post('/login', async (req, res) => {
+    const { email, password } = req?.body;
     try {
-        const user = await User.findByIdAndDelete({ _id: id });
-        console.log(user);
+
+        const user = await User.findOne({ email: email });
         if (!user) {
-            res.status(404).send("User Not found");
-
+            throw new Error("Invalid Credentials");
+        }
+        const isValidPassword = await user.validatePassword(password);
+        if (!isValidPassword) {
+            throw new Error("Invalid Credentials");
         }
         else {
-            res.send("User Deleted Successfully");
-        }
-    } catch (error) {
-        res.status(400).send("Something went wrong");
-    }
 
+            const token = await user.getJWT();
+
+            res.cookie("token", token, {
+                maxAge: 8 * 72000000
+            });
+
+            res.send("Login Successful");
+        }
+
+    } catch (error) {
+        res.status(400).send("Error: " + error.message)
+    }
 })
 
-app.patch('/user/:id', async (req, res) => {
-
-    const id = req?.params?.id;
-    const data = req?.body;
-    const ALLOWED_UPDATES = ["gender", "age", "photoUrl", "lastName", "skills", "about"];
-    const isAllowed = Object.keys(data).every(k => ALLOWED_UPDATES.includes(k));
-
+app.get('/profile', userAuth, async (req, res) => {
     try {
-        if (!isAllowed) {
-            throw new Error("Cannot update the given field");
-        }
-        const user = await User.findByIdAndUpdate(id, data, {
-            runValidators: true,
-            returnDocument: "before"
-        })
-
-        if (!user) {
-            res.status(404).send("User Not found");
-
-        }
-        else {
-            res.send("Updated Successfully");
-        }
+        const user = req.user;
+        res.send(user);
 
     } catch (error) {
-        res.status(400).send("UPDATE FAILED:" + error.message);
+        res.status(400).send("Error: " + error.message)
     }
+})
+
+app.post('/sendConnectionRequest', userAuth, async (req, res) => {
+
+    const user = req.user;
+
+    res.send(user?.firstName + " Sent connection request!");
 })
 
 connectToDb()
