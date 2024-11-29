@@ -7,13 +7,14 @@ const userAuth = async (req, res, next) => {
         if (!token) {
             throw new Error("Invalid token")
         }
-        const decodedObj = await jwt.verify(token, "bazzinga@001");
+        const decodedObj = jwt.verify(token, "bazzinga@001");
         const { _id } = decodedObj;
         const user = await User.findById(_id);
         if (!user) {
             throw new Error("User does not exist");
         }
         req.user = user;
+
         next();
     } catch (error) {
         res.status(400).send("ERROR: " + error.message)

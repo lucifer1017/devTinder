@@ -11,7 +11,6 @@ const requestRouter = require('./routes/request');
 app.use('/', authRouter);
 app.use('/', profileRouter);
 app.use('/', requestRouter);
-
 connectToDb()
     .then(() => {
         console.log("Connected to DB successfully");

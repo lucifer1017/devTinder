@@ -35,7 +35,19 @@ const userSchema = new mongoose.Schema({
         type: Number
     },
     gender: {
-        type: String
+        type: String,
+        lowercase: true,
+        enum: {
+            values: ['male', 'female', 'other'],
+            message: `{VALUE} as a gender is not accepted`
+        },
+        // validate(value) {
+        //     const allowedGenders = ['male', 'female', 'other'];
+        //     const isValidGender = allowedGenders.includes(value.toLowerCase());
+        //     if (!isValidGender) {
+        //         throw new Error("Enter a suitable Gender");
+        //     }
+        // }
     },
     photoUrl: {
         type: String,
@@ -60,9 +72,9 @@ const userSchema = new mongoose.Schema({
     }
 }, { timestamps: true });
 
-userSchema.methods.getJWT = async function () {
+userSchema.methods.getJWT = function () {
     const user = this;
-    const token = await jwt.sign({ _id: user._id }, "bazzinga@001", { expiresIn: '7d' });
+    const token = jwt.sign({ _id: user._id }, "bazzinga@001", { expiresIn: '7d' });
     return token;
 }
 userSchema.methods.validatePassword = async function (passwordInputByUser) {

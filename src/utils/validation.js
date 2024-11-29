@@ -1,5 +1,5 @@
 const validator = require('validator');
-
+const bcrypt = require('bcrypt');
 const validateUserSignup = (data) => {
     const { firstName, lastName, email, password } = data;
     if (!firstName || !lastName) {
@@ -14,4 +14,23 @@ const validateUserSignup = (data) => {
 
 }
 
-module.exports = { validateUserSignup };
+const validateEditProfileData = (data) => {
+    const editableFields = ['skills', 'about', 'photoUrl', 'age', 'firstName', 'lastName', 'gender'];
+
+
+    const isEditAllowed = Object.keys(data).every((field) => {
+        return editableFields.includes(field);
+    })
+    return isEditAllowed;
+
+
+}
+const validatePasswordChange = async (receivedPassword, userPasswordHash) => {
+
+    const isReceivedPasswordMatching = await bcrypt.compare(receivedPassword, userPasswordHash);
+
+    return isReceivedPasswordMatching;
+
+}
+
+module.exports = { validateUserSignup, validateEditProfileData, validatePasswordChange };

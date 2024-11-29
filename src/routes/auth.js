@@ -38,7 +38,7 @@ authRouter.post('/login', async (req, res) => {
         }
         else {
 
-            const token = await user.getJWT();
+            const token = user.getJWT();
 
             res.cookie("token", token, {
                 maxAge: 8 * 72000000
@@ -51,5 +51,18 @@ authRouter.post('/login', async (req, res) => {
         res.status(400).send("Error: " + error.message)
     }
 })
+authRouter.post('/logout', async (req, res) => {
 
+    res.cookie("token", null, {
+        maxAge: 0
+    })
+    res.send("Logged out successfully");
+})
+// authRouter.get('/findUser', async (req, res) => {
+
+//     const { id } = req?.body;
+//     const foundUser = await User.findById(id);
+//     console.log(foundUser);
+//     res.send("NP");
+// })
 module.exports = authRouter;
