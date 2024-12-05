@@ -14,11 +14,16 @@ authRouter.post('/signup', async (req, res) => {
 
         const user = new User(data);
 
-        const result = await user.save();
-        if (!result) {
+        const savedUser = await user.save();
+        if (!savedUser) {
             throw new Error("Cannot Save user")
         }
-        res.send("User added Successfully");
+        const token = savedUser.getJWT();
+
+        res.cookie("token", token, {
+            maxAge: 8 * 72000000
+        });
+        res.json({ message: "User added Successfully", data: savedUser });
     } catch (error) {
         res.status(400).send("Error: " + error.message)
     }
@@ -44,7 +49,7 @@ authRouter.post('/login', async (req, res) => {
                 maxAge: 8 * 72000000
             });
 
-            res.send("Login Successful");
+            res.send(user);
         }
 
     } catch (error) {

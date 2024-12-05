@@ -37,17 +37,17 @@ const userSchema = new mongoose.Schema({
     gender: {
         type: String,
         lowercase: true,
-        enum: {
-            values: ['male', 'female', 'other'],
-            message: `{VALUE} as a gender is not accepted`
-        },
-        // validate(value) {
-        //     const allowedGenders = ['male', 'female', 'other'];
-        //     const isValidGender = allowedGenders.includes(value.toLowerCase());
-        //     if (!isValidGender) {
-        //         throw new Error("Enter a suitable Gender");
-        //     }
-        // }
+        // enum: {
+        //     values: ['Male', 'Female', 'Other'],
+        //     message: `{VALUE} as a gender is not accepted`
+        // },
+        validate(value) {
+            const allowedGenders = ['male', 'female', 'other'];
+            const isValidGender = allowedGenders.includes(value.toLowerCase());
+            if (!isValidGender) {
+                throw new Error("Enter a suitable Gender");
+            }
+        }
     },
     photoUrl: {
         type: String,

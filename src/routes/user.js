@@ -3,7 +3,7 @@ const userRouter = express.Router();
 const { userAuth } = require('../middlewares/auth');
 const ConnectionRequest = require('../models/connectionRequest');
 const User = require('../models/user');
-const REQ_USER_DATA = "firstName lastName age gender skills photoUrl"
+const REQ_USER_DATA = "firstName lastName age gender skills photoUrl about"
 
 userRouter.get('/user/requests/received', userAuth, async (req, res) => {
 
@@ -85,7 +85,7 @@ userRouter.get('/feed', userAuth, async (req, res) => {
 
         }).select(REQ_USER_DATA).skip(skip).limit(limit);
 
-        res.send(availableUsers);
+        res.json({ data: availableUsers });
 
 
     } catch (error) {
